@@ -1,0 +1,40 @@
+name: Publish @pingcap-community/ui
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.13.0
+      - uses: actions/cache@v2.1.5
+        with:
+          path: node_modules
+          key: node_modules
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.13.0
+          registry-url: https://registry.npmjs.org/
+      - uses: actions/cache@v2.1.5
+        with:
+          path: node_modules
+          key: node_modules
+      - run: npm ci
+      - run: npm publish
+        working-directory: 'packages/ui'
+        env:
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
